@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Ciudad en Ruinas — 2077</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #info-overlay {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #aaa;
+      font-family: monospace;
+      font-size: 13px;
+      pointer-events: none;
+      text-shadow: 0 0 8px #000;
+      z-index: 100;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="info-overlay">WASD para moverse · Mouse para mirar · Apunta al botón y haz click para escanear</div>
+
+  <a-scene fog="type: exponential; color: #1a1008; density: 0.04" renderer="antialias: true; colorManagement: true"
+    background="color: #0d0a05">
+
+    <!-- Assets -->
+    <a-assets>
+      <!-- Concrete color via canvas-generated textures (no external files) -->
+    </a-assets>
+
+    <!-- Sky -->
+    <a-sky color="#100c08"></a-sky>
+
+    <!-- Ambient & directional lights -->
+    <a-light type="ambient" color="#2a1f10" intensity="1.2"></a-light>
+    <a-light type="directional" color="#4a3820" intensity="0.6" position="-3 8 -5"></a-light>
+    <a-light type="point" color="#ff6600" intensity="0.4" position="0 1.5 0" distance="15" decay="2"></a-light>
+
+    <!-- Ground -->
+    <a-plane position="0 0 0" rotation="-90 0 0" width="120" height="120" color="#2a2218" roughness="1"
+      metalness="0"></a-plane>
+
+    <!-- Cracks / rubble patches on ground -->
+    <a-box position="-4 0.05 -6" width="3" height="0.1" depth="2" color="#1e1810" rotation="0 15 0"></a-box>
+    <a-box position="5 0.05 -3" width="2" height="0.1" depth="3" color="#222016" rotation="0 -20 0"></a-box>
+    <a-box position="-8 0.05 2" width="4" height="0.1" depth="1.5" color="#1a1612" rotation="0 45 0"></a-box>
+    <a-box position="3 0.05 8" width="2.5" height="0.1" depth="2" color="#201c14" rotation="0 10 0"></a-box>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 1 — Torre inclinada principal -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-1" class="edificio escaneable">
+      <!-- Cuerpo principal inclinado -->
+      <a-box position="-8 4 -12" width="4" height="8" depth="4" color="#4a4540" roughness="1" metalness="0.05"
+        rotation="0 10 3"></a-box>
+      <!-- Pared lateral rota -->
+      <a-box position="-5.5 3 -11" width="0.4" height="5" depth="3.5" color="#3d3830" roughness="1"
+        rotation="0 10 -8"></a-box>
+      <!-- Fragmento caído -->
+      <a-box position="-6.5 0.3 -9.5" width="2.5" height="0.6" depth="1.5" color="#403c34" roughness="1"
+        rotation="0 30 12"></a-box>
+      <!-- Ventanas rotas (huecos oscuros) -->
+      <a-box position="-8 5.5 -10.1" width="0.8" height="1.2" depth="0.1" color="#050403"></a-box>
+      <a-box position="-8 3.0 -10.1" width="0.8" height="1.2" depth="0.1" color="#050403"></a-box>
+      <a-box class="wireframe-outline" position="-7.5 4 -11" width="6.5" height="10" depth="6"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-1" position="-8 1.6 -9">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 2 — Bloque bajo partido a la mitad -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-2" class="edificio escaneable">
+      <a-box position="7 2.5 -10" width="5" height="5" depth="4" color="#50453a" roughness="1" metalness="0.05"
+        rotation="0 -15 0"></a-box>
+      <!-- Mitad derrumbada -->
+      <a-box position="9.5 1.2 -9.5" width="2.5" height="2.4" depth="4" color="#3e3530" roughness="1"
+        rotation="0 -15 -15"></a-box>
+      <!-- Escombros -->
+      <a-box position="8.5 0.4 -7.8" width="3" height="0.8" depth="1.8" color="#3a322a" roughness="1"
+        rotation="0 -20 5"></a-box>
+      <a-box position="10.2 0.25 -9" width="1.5" height="0.5" depth="1.2" color="#443c32" roughness="1"
+        rotation="0 40 0"></a-box>
+      <!-- Ventanas -->
+      <a-box position="6.2 3.5 -8.1" width="1" height="1.4" depth="0.1" color="#060402"></a-box>
+      <a-box position="7.8 3.5 -8.1" width="1" height="1.4" depth="0.1" color="#060402"></a-box>
+      <a-box class="wireframe-outline" position="8 2.5 -9.5" width="8" height="6" depth="7"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-2" position="8 1.6 -7.5">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 3 — Torre alta en ruinas (delantera izquierda) -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-3" class="edificio escaneable">
+      <!-- Columna central -->
+      <a-box position="-10 6 0" width="3" height="12" depth="3" color="#484040" roughness="1" metalness="0.08"
+        rotation="0 5 -2"></a-box>
+      <!-- Parte superior destrozada -->
+      <a-box position="-9.5 11 0.5" width="2.8" height="2" depth="2.5" color="#3c3638" roughness="1"
+        rotation="0 5 12"></a-box>
+      <!-- Pared expuesta -->
+      <a-box position="-8.1 5 0" width="0.3" height="8" depth="2.8" color="#35302e" roughness="1"
+        rotation="0 5 4"></a-box>
+      <!-- Balcón roto -->
+      <a-box position="-8 7.5 1.5" width="1.8" height="0.3" depth="1.2" color="#403a38" roughness="1"
+        rotation="0 5 -20"></a-box>
+      <!-- Escombros base -->
+      <a-box position="-9 0.5 1.8" width="3.5" height="1" depth="2" color="#3a3430" roughness="1"
+        rotation="0 -10 3"></a-box>
+      <!-- Ventanas -->
+      <a-box position="-8.55 8 1.55" width="0.8" height="1" depth="0.1" color="#04030200"></a-box>
+      <a-box position="-8.55 5 1.55" width="0.8" height="1" depth="0.1" color="#040302"></a-box>
+      <a-box position="-8.55 2.5 1.55" width="0.8" height="1" depth="0.1" color="#040302"></a-box>
+      <a-box class="wireframe-outline" position="-9.5 6 0.5" width="5" height="14" depth="5"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-3" position="-9.5 1.6 2">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 4 — Fábrica destruida (derecha) -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-4" class="edificio escaneable">
+      <!-- Nave principal -->
+      <a-box position="10 2 2" width="6" height="4" depth="8" color="#3e3c30" roughness="1" metalness="0.1"
+        rotation="0 -5 0"></a-box>
+      <!-- Chimenea rota -->
+      <a-box position="12.5 5 0" width="1.2" height="6" depth="1.2" color="#353228" roughness="1"
+        rotation="0 -5 4"></a-box>
+      <a-box position="12.8 7.8 0.2" width="1" height="1.5" depth="0.9" color="#2e2b22" roughness="1"
+        rotation="0 -5 18"></a-box>
+      <!-- Techo hundido -->
+      <a-box position="10 3.8 2" width="5.8" height="0.3" depth="7.8" color="#35332a" roughness="1"
+        rotation="0 -5 -3"></a-box>
+      <!-- Pared derrumbada -->
+      <a-box position="7.5 1.5 4" width="0.4" height="3" depth="5" color="#3a3828" roughness="1"
+        rotation="0 -5 -12"></a-box>
+      <!-- Escombros industriales -->
+      <a-box position="8.5 0.4 5.5" width="2" height="0.8" depth="1.5" color="#383530" roughness="1"
+        rotation="0 25 5"></a-box>
+      <a-box position="13 0.35 3" width="1.5" height="0.7" depth="1" color="#302e26" roughness="1"
+        rotation="0 -30 8"></a-box>
+      <!-- Ventanas industriales -->
+      <a-box position="10 2.5 -1.95" width="1.5" height="1" depth="0.1" color="#050400"></a-box>
+      <a-box position="12 2.5 -1.95" width="1.5" height="1" depth="0.1" color="#050400"></a-box>
+      <a-box class="wireframe-outline" position="10.5 4 2" width="8" height="10" depth="11"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-4" position="10.5 1.6 3">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 5 — Rascacielos en colapso (fondo centro) -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-5" class="edificio escaneable">
+      <!-- Núcleo central alto -->
+      <a-box position="0 9 -20" width="5" height="18" depth="5" color="#524e4a" roughness="1" metalness="0.06"
+        rotation="0 0 1.5"></a-box>
+      <!-- Sección colapsada derecha -->
+      <a-box position="4 5 -19" width="3" height="10" depth="4.5" color="#403c38" roughness="1"
+        rotation="0 0 -10"></a-box>
+      <!-- Sección colapsada izquierda -->
+      <a-box position="-4 6 -20" width="2.5" height="8" depth="4" color="#403c38" roughness="1"
+        rotation="0 0 8"></a-box>
+      <!-- Piso intermedio expuesto -->
+      <a-box position="0 12 -17.6" width="4.8" height="0.4" depth="0.5" color="#35302e" roughness="1"
+        rotation="0 0 2"></a-box>
+      <a-box position="0 8 -17.6" width="4.8" height="0.4" depth="0.5" color="#35302e" roughness="1"
+        rotation="0 0 -1"></a-box>
+      <!-- Escombros al pie -->
+      <a-box position="0 0.6 -17" width="8" height="1.2" depth="3" color="#3a3530" roughness="1"
+        rotation="0 5 2"></a-box>
+      <a-box position="3.5 0.4 -16" width="2.5" height="0.8" depth="2" color="#342f2b" roughness="1"
+        rotation="0 20 4"></a-box>
+      <a-box position="-3 0.4 -16.5" width="2" height="0.7" depth="1.8" color="#3a3430" roughness="1"
+        rotation="0 -15 -3"></a-box>
+      <!-- Ventanas -->
+      <a-box position="-0.7 14 -17.55" width="0.8" height="1.2" depth="0.1" color="#060402"></a-box>
+      <a-box position="0.9 14 -17.55" width="0.8" height="1.2" depth="0.1" color="#060402"></a-box>
+      <a-box position="-0.7 10 -17.55" width="0.8" height="1.2" depth="0.1" color="#060402"></a-box>
+      <a-box position="0.9 10 -17.55" width="0.8" height="1.2" depth="0.1" color="#060402"></a-box>
+      <a-box class="wireframe-outline" position="0 9 -19.5" width="13" height="21" depth="9"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-5" position="0 1.6 -17">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- EDIFICIO 6 — Estructura colapsada en diagonal (bono) -->
+    <!-- ============================================================ -->
+    <a-entity data-id="edificio-6" class="edificio escaneable">
+      <a-box position="2 2 4" width="3.5" height="4" depth="3" color="#4a4238" roughness="1"
+        rotation="0 20 -25"></a-box>
+      <a-box position="1.5 0.5 5.5" width="3" height="0.6" depth="2" color="#3e3830" roughness="1"
+        rotation="0 20 5"></a-box>
+      <a-box position="3.5 0.3 3.5" width="1.5" height="0.5" depth="1.5" color="#383230" roughness="1"
+        rotation="0 -10 0"></a-box>
+      <a-box class="wireframe-outline" position="2.5 2 4.5" width="5" height="5" depth="5"
+        material="wireframe: true; color: #00ff88; opacity: 0.3; transparent: true"></a-box>
+      <!-- Botón de interacción -->
+      <a-entity class="btn-ver-historia" data-building="edificio-6" position="2.5 1.6 6">
+        <a-plane class="clickeable" width="1.8" height="0.5" color="#081408" opacity="0.88" position="0 0 0"
+          material="shader: flat; side: double"
+          animation="property: material.opacity; from: 0.7; to: 1; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine"></a-plane>
+        <a-text value="[ VER HISTORIA ]" color="#00ff88" align="center" width="3" position="0 0 0.02"
+          font="monoid"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- Panel flotante de información (oculto por defecto) -->
+    <!-- ============================================================ -->
+    <a-entity id="info-panel" visible="false" position="0 0 0">
+      <!-- Fondo del panel -->
+      <a-plane width="2.4" height="1.8" color="#0a0f08" opacity="0.92" position="0 0 0.01"></a-plane>
+      <!-- Borde superior -->
+      <a-plane width="2.4" height="0.04" color="#22ff44" opacity="0.9" position="0 0.88 0.02"></a-plane>
+      <!-- Borde inferior -->
+      <a-plane width="2.4" height="0.02" color="#22ff44" opacity="0.5" position="0 -0.88 0.02"></a-plane>
+      <!-- Texto principal -->
+      <a-text id="panel-text" value="CONSULTANDO ARCHIVO..." color="#22ff44" align="center" width="2.1"
+        position="0 0.2 0.03" font="monoid" wrap-count="30"></a-text>
+      <!-- Texto de ID -->
+      <a-text id="panel-id" value="" color="#88ffaa" align="center" width="1.8" position="0 -0.7 0.03"
+        font="monoid" wrap-count="30"></a-text>
+      <!-- Botón de cierre -->
+      <a-entity id="panel-close" class="clickeable" position="0.95 0.77 0.03">
+        <a-plane width="0.32" height="0.26" color="#1a0505" opacity="0.95" position="0 0 0"
+          material="shader: flat; side: double"></a-plane>
+        <a-text value="[ X ]" color="#ff4444" align="center" width="0.7" position="0 0 0.01" font="monoid" wrap-count="30"></a-text>
+      </a-entity>
+    </a-entity>
+
+    <!-- ============================================================ -->
+    <!-- Cámara con controles WASD + cursor mouse -->
+    <!-- ============================================================ -->
+    <a-entity id="rig" position="0 1.6 6" movement-controls="fly: false; speed: 0.08">
+      <a-camera id="cam" look-controls="pointerLockEnabled: true" wasd-controls="speed: 0.08"
+        raycaster="objects: .clickeable; far: 40; recursive: true; origin: 0 0 0; direction: 0 0 -1" cursor="fuse: false">
+        <!-- Crosshair estático -->
+        <a-entity geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.013"
+          material="color: #00ff88; shader: flat; opacity: 0.8" position="0 0 -1"></a-entity>
+      </a-camera>
+    </a-entity>
+
+    <!-- Partículas de ceniza / polvo (esferas pequeñas flotantes) -->
+    <a-sphere position="-3 3 -5" radius="0.04" color="#555" opacity="0.4"
+      animation="property: position; to: -3.5 4 -5; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+    <a-sphere position="4 2 -7" radius="0.03" color="#444" opacity="0.3"
+      animation="property: position; to: 3.5 3.2 -7; dur: 5500; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+    <a-sphere position="1 4 -3" radius="0.05" color="#666" opacity="0.25"
+      animation="property: position; to: 1.8 5 -3; dur: 3800; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+    <a-sphere position="-6 2.5 -8" radius="0.03" color="#555" opacity="0.35"
+      animation="property: position; to: -5.5 3.5 -8; dur: 6200; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+    <a-sphere position="7 3 -4" radius="0.04" color="#444" opacity="0.3"
+      animation="property: position; to: 7 4.2 -4; dur: 4900; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+    <a-sphere position="0 2 -15" radius="0.06" color="#555" opacity="0.2"
+      animation="property: position; to: 0.5 3 -15; dur: 7000; dir: alternate; loop: true; easing: easeInOutSine"></a-sphere>
+
+  </a-scene>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyByzDarYpDjpJQViNVjZt8UOTcXJMJsNus",
+      authDomain: "chrono-vision-d3057.firebaseapp.com",
+      projectId: "chrono-vision-d3057",
+      storageBucket: "chrono-vision-d3057.firebasestorage.app",
+      messagingSenderId: "139913977416",
+      appId: "1:139913977416:web:9997ec12264bc6c822c27d"
+    });
+    const db = getFirestore(app);
+
+    let classifier = null;
+    ml5.imageClassifier('MobileNet').then(c => { classifier = c; console.log('ML listo'); });
+
+    var scene = document.querySelector('a-scene');
+    scene.addEventListener('loaded', function () {
+      var panel = document.getElementById('info-panel');
+      var panelText = document.getElementById('panel-text');
+      var panelId = document.getElementById('panel-id');
+      var closeBtn = document.getElementById('panel-close');
+      var cam = document.getElementById('cam');
+      var fuseTimer = null;
+      var activeBuilding = null;
+
+      function sanitizeText(str) {
+        return (str || '')
+          .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i')
+          .replace(/ó/g, 'o').replace(/ú/g, 'u').replace(/ü/g, 'u')
+          .replace(/Á/g, 'A').replace(/É/g, 'E').replace(/Í/g, 'I')
+          .replace(/Ó/g, 'O').replace(/Ú/g, 'U')
+          .replace(/ñ/g, 'n').replace(/Ñ/g, 'N');
+      }
+
+      function positionPanel() {
+        var camObj = cam.object3D;
+        var camPos = new THREE.Vector3();
+        camObj.getWorldPosition(camPos);
+        var dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camObj.quaternion);
+        var pos = camPos.clone().addScaledVector(dir, 3);
+        pos.y += 0.2;
+        panel.object3D.position.copy(pos);
+        panel.object3D.lookAt(camPos);
+      }
+
+      function hidePanel() {
+        if (fuseTimer) { clearTimeout(fuseTimer); fuseTimer = null; }
+        if (activeBuilding) {
+          var outline = activeBuilding.querySelector('.wireframe-outline');
+          if (outline) outline.setAttribute('material', 'opacity', 0.3);
+          activeBuilding = null;
+        }
+        panel.setAttribute('visible', 'false');
+      }
+
+      function openPanel(buildingEl) {
+        var id = buildingEl.getAttribute('data-id') || '—';
+        console.log('click en:', id);
+
+        if (fuseTimer) { clearTimeout(fuseTimer); fuseTimer = null; }
+
+        if (activeBuilding && activeBuilding !== buildingEl) {
+          var prev = activeBuilding.querySelector('.wireframe-outline');
+          if (prev) prev.setAttribute('material', 'opacity', 0.3);
+        }
+
+        activeBuilding = buildingEl;
+
+        var outline = buildingEl.querySelector('.wireframe-outline');
+        if (outline) outline.setAttribute('material', 'opacity', 0.8);
+
+        panelId.setAttribute('value', sanitizeText('[ ' + id.toUpperCase() + ' ]'));
+        panelText.setAttribute('color', '#22ff44');
+        panelText.setAttribute('value', 'CONSULTANDO ARCHIVO...');
+        console.log('mostrando panel');
+        panel.setAttribute('visible', 'true');
+        console.log('panel visible:', panel.getAttribute('visible'));
+        positionPanel();
+
+        var canvas = document.querySelector('canvas');
+        var mlPromise = (classifier && canvas)
+          ? classifier.classify(canvas).then(function (results) {
+              console.log('resultado ML completo:', results);
+              return results.find(function (r) { return r.confidence > 0.1; }) || null;
+            }).catch(function () { return null; })
+          : Promise.resolve(null);
+
+        var apiPromise = fetch('https://chrono-api-139913977416.us-central1.run.app/procesar?id=' + id)
+          .then(function (r) { return r.json(); })
+          .catch(function () { return null; });
+
+        console.log('consultando firestore:', id);
+        Promise.all([getDoc(doc(db, 'lugares', id)), mlPromise, apiPromise])
+          .then(function (values) {
+            var snap = values[0];
+            var mlResult = values[1];
+            var apiData = values[2];
+            console.log('respuesta firestore:', snap.exists());
+            if (snap.exists()) {
+              var d = snap.data();
+              var lines = sanitizeText(d.nombre || '') + '\nANO: ' + sanitizeText(String(d.anio_pasado || '')) + '\n' + sanitizeText(d.descripcion || '');
+              if (mlResult) {
+                var mlLabels = {
+                  'edificio-1': 'Estructura de concreto armado',
+                  'edificio-2': 'Edificacion residencial',
+                  'edificio-3': 'Torre de comunicaciones',
+                  'edificio-4': 'Instalacion industrial',
+                  'edificio-5': 'Complejo gubernamental',
+                  'edificio-6': 'Estructura comercial'
+                };
+                var mlLabel = mlLabels[id] || sanitizeText(mlResult.label);
+                var iaLine = 'IA: ' + mlLabel + ' (' + Math.round(mlResult.confidence * 100) + '%)';
+                lines += '\n' + iaLine;
+              }
+              if (apiData) {
+                lines += '\nDANO: ' + sanitizeText(String(apiData.nivel_dano)) + '% | FRAGMENTOS: ' + sanitizeText(String(apiData.fragmentos_recuperados));
+                lines += '\n' + sanitizeText(apiData.era || '');
+              }
+              panelText.setAttribute('color', '#22ff44');
+              panelText.setAttribute('value', lines);
+            } else {
+              panelText.setAttribute('color', '#ff4444');
+              panelText.setAttribute('value', 'DATOS NO ENCONTRADOS');
+            }
+          })
+          .catch(function (err) {
+            console.log('error firestore:', err);
+            panelText.setAttribute('color', '#ff4444');
+            panelText.setAttribute('value', 'DATOS NO ENCONTRADOS');
+          });
+      }
+
+      var buttons = document.querySelectorAll('.btn-ver-historia');
+      buttons.forEach(function (btnEntity) {
+        var plane = btnEntity.querySelector('.clickeable');
+        if (!plane) return;
+        plane.addEventListener('click', function () {
+          var el = btnEntity;
+          while (el) {
+            if (el.classList && el.classList.contains('escaneable')) {
+              openPanel(el);
+              return;
+            }
+            el = el.parentEl || null;
+          }
+        });
+      });
+
+      closeBtn.addEventListener('click', hidePanel);
+    });
+  </script>
+
+  <style>
+    #btn-camara {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #081408;
+      color: #00ff88;
+      border: 1px solid #00ff88;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+      z-index: 999;
+    }
+    #camara-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 998;
+    }
+    #camara-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #camara-ui {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    #camara-botones {
+      display: flex;
+      gap: 16px;
+    }
+    #camara-botones button {
+      background: #081408;
+      color: #00ff88;
+      border: 1px solid #00ff88;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    #camara-resultado {
+      color: #00ff88;
+      font-family: monospace;
+      font-size: 13px;
+      text-align: center;
+      max-width: 90vw;
+      white-space: pre-wrap;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 12px;
+    }
+    #camara-canvas-oculto { display: none; }
+  </style>
+
+  <button id="btn-camara">MODO CAMARA</button>
+
+  <div id="camara-overlay">
+    <video id="camara-video" autoplay playsinline></video>
+    <canvas id="camara-canvas-oculto"></canvas>
+    <div id="camara-ui">
+      <div id="camara-botones">
+        <button id="btn-escanear">ESCANEAR</button>
+        <button id="btn-volver">VOLVER</button>
+      </div>
+      <div id="camara-resultado"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var API_URL = 'https://chrono-api-139913977416.us-central1.run.app/analizar-imagen';
+
+      var btnCamara = document.getElementById('btn-camara');
+      var overlay = document.getElementById('camara-overlay');
+      var video = document.getElementById('camara-video');
+      var canvasOculto = document.getElementById('camara-canvas-oculto');
+      var btnEscanear = document.getElementById('btn-escanear');
+      var btnVolver = document.getElementById('btn-volver');
+      var resultado = document.getElementById('camara-resultado');
+      var stream = null;
+
+      btnCamara.addEventListener('click', function () {
+        resultado.textContent = '';
+        overlay.style.display = 'block';
+        var aCanvas = document.querySelector('canvas');
+        if (aCanvas) aCanvas.style.display = 'none';
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(function (s) {
+            stream = s;
+            video.srcObject = s;
+          })
+          .catch(function () {
+            resultado.textContent = 'ERROR: no se pudo acceder a la camara.';
+          });
+      });
+
+      btnVolver.addEventListener('click', function () {
+        if (stream) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          stream = null;
+        }
+        video.srcObject = null;
+        overlay.style.display = 'none';
+        resultado.textContent = '';
+        var aCanvas = document.querySelector('canvas');
+        if (aCanvas) aCanvas.style.display = '';
+      });
+
+      btnEscanear.addEventListener('click', function () {
+        if (!stream) { resultado.textContent = 'Sin camara activa.'; return; }
+        resultado.textContent = 'ANALIZANDO...';
+        canvasOculto.width = 640;
+        canvasOculto.height = 480;
+        var ctx = canvasOculto.getContext('2d');
+        ctx.drawImage(video, 0, 0, 640, 480);
+        var b64 = canvasOculto.toDataURL('image/jpeg', 0.6).split(',')[1];
+
+        fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagen: b64 })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            resultado.textContent = data.respuesta || 'Sin respuesta.';
+          })
+          .catch(function () {
+            resultado.textContent = 'ERROR al contactar la API.';
+          });
+      });
+    })();
+  </script>
+</body>
+
+</html>
