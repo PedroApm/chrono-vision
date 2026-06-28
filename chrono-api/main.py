@@ -36,8 +36,8 @@ def analizar_imagen():
     data = request.get_json()
     imagen_b64 = data.get('imagen', '')
 
-    GEMINI_KEY = 'AQ.Ab8RN6Ium3Xo7bxdOgevm5IwfHp0zooxEe8mqxpmWHn7KYu7CA'
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}'
+    GEMINI_KEY = 'AQ.Ab8RN6LNVMPzjtb0E8QYFclspFmR0ofVT7_r12RoOeWE_1OnNg'
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_KEY}'
 
     payload = {
         'contents': [{
