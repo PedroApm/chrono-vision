@@ -265,13 +265,14 @@
       <a-text id="panel-text" value="CONSULTANDO ARCHIVO..." color="#22ff44" align="center" width="2.1"
         position="0 0.2 0.03" font="monoid" wrap-count="30"></a-text>
       <!-- Texto de ID -->
-      <a-text id="panel-id" value="" color="#88ffaa" align="center" width="1.8" position="0 -0.7 0.03"
-        font="monoid" wrap-count="30"></a-text>
+      <a-text id="panel-id" value="" color="#88ffaa" align="center" width="1.8" position="0 -0.7 0.03" font="monoid"
+        wrap-count="30"></a-text>
       <!-- Botón de cierre -->
       <a-entity id="panel-close" class="clickeable" position="0.95 0.77 0.03">
         <a-plane width="0.32" height="0.26" color="#1a0505" opacity="0.95" position="0 0 0"
           material="shader: flat; side: double"></a-plane>
-        <a-text value="[ X ]" color="#ff4444" align="center" width="0.7" position="0 0 0.01" font="monoid" wrap-count="30"></a-text>
+        <a-text value="[ X ]" color="#ff4444" align="center" width="0.7" position="0 0 0.01" font="monoid"
+          wrap-count="30"></a-text>
       </a-entity>
     </a-entity>
 
@@ -280,7 +281,8 @@
     <!-- ============================================================ -->
     <a-entity id="rig" position="0 1.6 6" movement-controls="fly: false; speed: 0.08">
       <a-camera id="cam" look-controls="pointerLockEnabled: true" wasd-controls="speed: 0.08"
-        raycaster="objects: .clickeable; far: 40; recursive: true; origin: 0 0 0; direction: 0 0 -1" cursor="fuse: false">
+        raycaster="objects: .clickeable; far: 40; recursive: true; origin: 0 0 0; direction: 0 0 -1"
+        cursor="fuse: false">
         <!-- Crosshair estático -->
         <a-entity geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.013"
           material="color: #00ff88; shader: flat; opacity: 0.8" position="0 0 -1"></a-entity>
@@ -387,9 +389,9 @@
         var canvas = document.querySelector('canvas');
         var mlPromise = (classifier && canvas)
           ? classifier.classify(canvas).then(function (results) {
-              console.log('resultado ML completo:', results);
-              return results.find(function (r) { return r.confidence > 0.1; }) || null;
-            }).catch(function () { return null; })
+            console.log('resultado ML completo:', results);
+            return results.find(function (r) { return r.confidence > 0.1; }) || null;
+          }).catch(function () { return null; })
           : Promise.resolve(null);
 
         var apiPromise = fetch('https://chrono-api-139913977416.us-central1.run.app/procesar?id=' + id)
@@ -471,6 +473,7 @@
       cursor: pointer;
       z-index: 999;
     }
+
     #camara-overlay {
       display: none;
       position: fixed;
@@ -481,11 +484,13 @@
       background: #000;
       z-index: 998;
     }
+
     #camara-video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+
     #camara-ui {
       position: absolute;
       top: 50%;
@@ -496,10 +501,12 @@
       align-items: center;
       gap: 16px;
     }
+
     #camara-botones {
       display: flex;
       gap: 16px;
     }
+
     #camara-botones button {
       background: #081408;
       color: #00ff88;
@@ -509,6 +516,7 @@
       padding: 10px 16px;
       cursor: pointer;
     }
+
     #camara-resultado {
       color: #00ff88;
       font-family: monospace;
@@ -516,10 +524,13 @@
       text-align: center;
       max-width: 90vw;
       white-space: pre-wrap;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
       padding: 8px 12px;
     }
-    #camara-canvas-oculto { display: none; }
+
+    #camara-canvas-oculto {
+      display: none;
+    }
   </style>
 
   <button id="btn-camara">MODO CAMARA</button>
